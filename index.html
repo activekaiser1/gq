@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+  <!-- Bootstrap 4 -->
+ 
+</head>
+
+  
+<body>
+    <div class="container">
+      <div class="row">
+       <div class="col-12">
+        <div style="margin: 200px auto 0; width: 300px;">
+
+          <h5>Upload Audio File</h5>
+          <fieldset>
+            <input type="file" id="audio-file" accept="audio/mpeg, audio/ogg, audio/*" />
+            <button type="button" id="compress_btn" class="btn btn-outline-primary" style="margin-top: 20px;">Compress</button>
+          </fieldset>
+
+          </div>
+        <div>
+      </div>
+    </div>
+  </div>
+</body>
+  <script>
+  var fileInput = document.getElementById('audio-file');
+var audioCtx = new (AudioContext || webkitAudioContext)();
+
+var compress_btn = document.getElementById('compress_btn');
+
+//Load audio file listener
+compress_btn.addEventListener("click", function() {
+
+  // check for file
+  if(fileInput.files[0] == undefined) {
+
+    // Stop the process and tell user they need to upload a file.
+    return false;
+  }
+
+  var reader1 = new FileReader();
+	reader1.onload = function(ev) {
+	    
+	    // Decode audio
+	    audioCtx.decodeAudioData(ev.target.result).then(function(buffer) {
+
+	    var soundSource = audioCtx.createBufferSource();
+
+		soundSource.buffer = buffer;
+		
+	    // Create Compressor Node
+		compressor = audioCtx.createDynamicsCompressor();
+
+		compressor.threshold.setValueAtTime(-20, audioCtx.currentTime);
+		compressor.knee.setValueAtTime(-30, audioCtx.currentTime);
+		compressor.ratio.setValueAtTime(5, audioCtx.currentTime);
+		compressor.attack.setValueAtTime(.05, audioCtx.currentTime);
+		compressor.release.setValueAtTime(.25, audioCtx.currentTime);
+
+		soundSource.connect(compressor);
+
+		compressor.connect(audioCtx.destination);
+		soundSource.start(0);
+
+	    });
+	  };
+	  reader1.readAsArrayBuffer(fileInput.files[0]);
+
+}, false);
+  </script>
+</html>
